@@ -1,11 +1,9 @@
 
-
-import logo from './logo.svg';
 import './App.css';
 
 import { css } from '@emotion/css';
 
-//COMPONENTS
+// COMPONENTS
 import Canvas from './Components/Canvas';
 
 function App() {

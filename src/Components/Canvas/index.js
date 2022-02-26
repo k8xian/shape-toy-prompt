@@ -1,7 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { css } from '@emotion/css';
+import React, { useRef, useState, useEffect } from "react";
+import { css } from "@emotion/css";
+import tw, { styled } from "twin.macro";
 // HELPERS
-import useMousePosition from '../../Helpers/mousePosition';
+import useMousePosition from "../../Helpers/mousePosition";
 
 const canvasStyle = css`
   border: 1px solid gray;
@@ -9,87 +10,108 @@ const canvasStyle = css`
 
 function Canvas() {
   const [circLocation, setCircLocation] = useState();
+  const [circMov, setCircMov] = useState();
   const [circArea, setCircArea] = useState();
   const [showCirc, setShowCirc] = useState(false);
 
   const [rectLocation, setRectLocation] = useState();
+  const [recMov, setRecMov] = useState();
   const [rectArea, setRectArea] = useState();
   const [showRect, setShowRect] = useState(false);
+
+  const [dragInit, setDragInit] = useState();
+  const [dragFinal, setDragFinal] = useState();
+  const [isDragging, setisDragging] = useState(false);
 
   const canvasRef = useRef(null);
 
   const { mouseX, mouseY } = useMousePosition();
 
+  const randomNum = () => {
+    return Math.floor(Math.random() * 499) + 1;
+  };
+
   // clear canvas
   const clearCanvas = () => {
+    if (canvasRef) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
+  const drawRectangle = (param) => {
+    const { x, y, w, h, c } = param;
+    // getting canvas ref
+    clearCanvas();
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext("2d");
+
+    // drawing rectangle
+    ctx.beginPath();
+    ctx.fillStyle = c;
+    ctx.fillRect(x, y, w, h);
+
+    setRectLocation(param);
   };
 
   // highlight rectangle
-  const highlightRect = (click) => {
+  const selectRect = (click) => {
     // getting canvas ref
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
 
     const offset = click ? 4 : 5;
 
     const highlight = {
       x: rectLocation.x - offset,
       y: rectLocation.y - offset,
-      width: rectLocation.width + offset * 2,
-      height: rectLocation.height + offset * 2,
-      color: click ? 'chartreuse' : 'plum',
+      w: rectLocation.w + offset * 2,
+      h: rectLocation.h + offset * 2,
+      c: click ? "chartreuse" : "plum",
     };
     // drawing highlight
-    ctx.fillStyle = highlight.color;
-    ctx.fillRect(highlight.x, highlight.y, highlight.width, highlight.height);
+    ctx.fillStyle = highlight.c;
+    ctx.fillRect(highlight.x, highlight.y, highlight.w, highlight.h);
     drawRectangle(rectLocation);
-  };
-
-  const drawRectangle = (newParam) => {
-    // getting canvas ref
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    let newRect = {};
-
-    if (newParam) {
-      newRect = newParam;
-    } else {
-      newRect = {
-        x: 10,
-        y: 10,
-        height: 100,
-        width: 100,
-        color: 'teal',
-      };
-    }
-    // drawing rectangle
-    ctx.fillStyle = newRect.color;
-    ctx.fillRect(newRect.x, newRect.y, newRect.width, newRect.height);
-
-    setRectLocation(newRect);
   };
 
   // finding hot area of rectangle
   useEffect(() => {
     if (rectLocation && canvasRef) {
-      const tempObj = { x: { min: '', max: '' }, y: { min: '', max: '' } };
+      const tempObj = { x: { min: "", max: "" }, y: { min: "", max: "" } };
       tempObj.x.min = canvasRef.current.offsetLeft + rectLocation.x;
-      tempObj.x.max = tempObj.x.min + rectLocation.width;
+      tempObj.x.max = tempObj.x.min + rectLocation.w;
       tempObj.y.min = canvasRef.current.offsetTop + rectLocation.y;
-      tempObj.y.max = tempObj.y.min + rectLocation.height;
+      tempObj.y.max = tempObj.y.min + rectLocation.h;
       setRectArea(tempObj);
     }
   }, [rectLocation]);
 
+  const drawCircle = (param) => {
+
+    const {x, y, r, c} = param;
+    // getting canvas ref
+
+    clearCanvas();
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    // drawing circle
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = c;
+    ctx.fill();
+
+    // setting initial location for circle
+    setCircLocation(param);
+  };
+
   // highlight circle
-  const highlightCircle = (click) => {
+  const selectCircle = (click) => {
     // getting canvas ref
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
 
     const offset = click ? 4 : 5;
 
@@ -97,7 +119,7 @@ function Canvas() {
       x: circLocation.x,
       y: circLocation.y,
       radius: circLocation.radius + offset,
-      color: click ? 'chartreuse' : 'plum',
+      color: click ? "chartreuse" : "plum",
     };
 
     // drawing circle
@@ -107,67 +129,33 @@ function Canvas() {
     ctx.fill();
     drawCircle(circLocation);
   };
-
-  const drawCircle = (newParam) => {
-    // getting canvas ref
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    let newCirc = {};
-
-    if (newParam) {
-      newCirc = newParam;
-    } else {
-      newCirc = {
-        x: 300,
-        y: 250,
-        radius: 50,
-        color: 'orange',
-        xArea: {
-          min: '',
-          max: '',
-        },
-        yArea: {
-          min: '',
-          max: '',
-        },
-      };
-    }
-
-    // drawing circle
-    ctx.beginPath();
-    ctx.arc(newCirc.x, newCirc.y, newCirc.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = newCirc.color;
-    ctx.fill();
-
-    // setting initial location for circle
-    setCircLocation(newCirc);
-  };
-
   // finding hot area of circle
   useEffect(() => {
     if (circLocation && canvasRef) {
-      const tempObj = { x: { min: '', max: '' }, y: { min: '', max: '' } };
-      tempObj.x.min = canvasRef.current.offsetLeft + circLocation.x - circLocation.radius;
-      tempObj.x.max = tempObj.x.min + circLocation.radius * 2;
-      tempObj.y.min = canvasRef.current.offsetTop + circLocation.y - circLocation.radius;
-      tempObj.y.max = tempObj.y.min + circLocation.radius * 2;
+      const tempObj = { x: { min: "", max: "" }, y: { min: "", max: "" } };
+      tempObj.x.min =
+        canvasRef.current.offsetLeft + circLocation.x - circLocation.r;
+      tempObj.x.max = tempObj.x.min + circLocation.r * 2;
+      tempObj.y.min =
+        canvasRef.current.offsetTop + circLocation.y - circLocation.r;
+      tempObj.y.max = tempObj.y.min + circLocation.r * 2;
       setCircArea(tempObj);
     }
   }, [circLocation]);
 
+
   // check location against rectangle location
   const checkMouseRect = (location) => {
-    console.log(location);
-    console.log(canvasRef.current.offsetLeft);
     if (
-      rectLocation
-      && location.x > rectArea.x.min
-      && location.x < rectArea.x.max
-      && location.y > rectArea.y.min
-      && location.y < rectArea.y.max
+      rectLocation &&
+      location.x > rectArea.x.min &&
+      location.x < rectArea.x.max &&
+      location.y > rectArea.y.min &&
+      location.y < rectArea.y.max
     ) {
       setShowRect(true);
+      //saving the starting position
+      setRecMov(rectLocation);
     } else if (!location.shift) {
       setShowRect(false);
     }
@@ -177,68 +165,74 @@ function Canvas() {
   // this does not currently account for area
   const checkMouseCirc = (location) => {
     if (
-      circLocation
-      && location.x > circArea.x.min
-      && location.x < circArea.x.max
-      && location.y > circArea.y.min
-      && location.y < circArea.y.max
+      circLocation &&
+      location.x > circArea.x.min &&
+      location.x < circArea.x.max &&
+      location.y > circArea.y.min &&
+      location.y < circArea.y.max
     ) {
       setShowCirc(true);
+      //saving the starting position
+      setCircMov(circLocation);
     } else if (!location.shift) {
       setShowCirc(false);
     }
   };
 
   // if circle or rectangle are selected, highlight them
-  useEffect(() => {
-    // resetting highlight
-    clearCanvas();
-    if (showCirc) {
-      highlightCircle(true);
-    }
-    if (showRect) {
-      highlightRect(true);
-    }
-    if (!showRect && rectLocation) {
-      drawRectangle(rectLocation);
-    }
-    if (!showCirc && circLocation) {
-      drawCircle(circLocation);
-    }
-  }, [showCirc, showRect, circLocation, rectLocation]);
+  // useEffect(() => {
+  //   // resetting highlight
+  //   if (canvasRef) {
+  //     clearCanvas();
+  //     if (showCirc) {
+  //       selectCircle(true);
+  //     }
+  //     if (showRect) {
+  //       selectRect(true);
+  //     }
+  //     if (!showRect && rectLocation) {
+  //       drawRectangle(rectLocation);
+  //     }
+  //     if (!showCirc && circLocation) {
+  //       drawCircle(circLocation);
+  //     }
+  //   }
+  // }, [showCirc, showRect, circLocation, rectLocation]);
 
-  // using custom hook to watch for changes to mouse position
+  // for hover highlight using custom hook to watch for changes to mouse position
   //    useEffect(() => {
-  //       if (rectLocation?.x && rectArea && canvasRef?.current && mouseX > rectArea.x.min &&  mouseX < rectArea.x.max  && mouseY > rectArea.y.min && mouseY < rectArea.y.max){
-  //           highlightRect(false);
-  //       } else{
+  //       if (showRect && rectLocation?.x && rectArea && canvasRef?.current && mouseX > rectArea.x.min &&  mouseX < rectArea.x.max  && mouseY > rectArea.y.min && mouseY < rectArea.y.max){
+  //           selectRect(false);
+  //       } else if (showRect) {
   //           clearCanvas();
   //           //redraw
   //           drawRectangle(rectLocation);
   //           if (circLocation?.x){
   //               drawCircle(circLocation);
   //           }
+  //       } else {
+  //         if (circLocation?.x){
+  //           clearCanvas();
+  //           drawCircle(circLocation);
+  //         }
   //       }
 
-  //       if (circLocation?.x && circArea && canvasRef?.current && mouseX > circArea.y.min && mouseX < circArea.y.max  && mouseY > circArea.y.min  && mouseY < circArea.y.max){
-  //           highlightCircle(false);
-  //       } else {
+  //       if (showCirc && circLocation?.x && circArea && canvasRef?.current && mouseX > circArea.y.min && mouseX < circArea.y.max  && mouseY > circArea.y.min  && mouseY < circArea.y.max){
+  //           selectCircle(false);
+  //       } else if (showCirc) {
+  //         clearCanvas();
   //           drawCircle(circLocation);
   //           if (rectLocation?.x){
   //               drawRectangle(rectLocation);
   //           }
+  //       } else {
+  //         if (rectLocation?.x){
+  //           clearCanvas();
+  //           drawRectangle(rectLocation);
+  //        }
   //       }
 
   //  }, [mouseX, mouseY]);
-
-  const onCanvasClick = (event) => {
-    console.log(event);
-    const click = { x: event.clientX, y: event.clientY, shift: event.shiftKey };
-    checkMouseRect(click);
-    checkMouseCirc(click);
-
-    // if shift key, do both and don't undo the other
-  };
 
   // delete rectangle component
   const deleteRect = () => {
@@ -258,8 +252,60 @@ function Canvas() {
     // redraw rect
   };
 
+  const handleMouseDown = (e) => {
+    const click = { x: e.clientX, y: e.clientY, shift: e.shiftKey };
+    checkMouseRect(click);
+    checkMouseCirc(click);
+    setisDragging(true);
+    setDragInit({ x: click.x , y: click.y });
+  };
+
+  const handleMouseUp = (e) => {
+    setisDragging(false);
+    setDragInit();
+    setRecMov();
+  };
+  const handleMouseOut = (e) => {
+    handleMouseUp(e);
+  };
+
+  const handleMouseMove = e => {
+    if (!isDragging) return;
+
+    if (showRect){
+      const dX = e.clientX - dragInit.x;
+      const dY = e.clientY - dragInit.y;
+      const newParam = {
+        x: recMov.x + dX,
+        y: recMov.y + dY,
+        w: recMov.w,
+        h: recMov.h,
+        c: recMov.c,
+      };
+      drawRectangle(newParam);
+    }
+    if (showCirc){
+      const dX = e.clientX - dragInit.x;
+      const dY = e.clientY - dragInit.y;
+      const newParam = {
+        x: circMov.x + dX,
+        y: circMov.y + dY,
+        r: circMov.r,
+        c: circMov.c,
+      };
+      drawCircle(newParam);
+    }
+     
+      
+  }
+
   return (
     <div>
+      {mouseX} {mouseY}
+      <br />
+      {JSON.stringify(circLocation)}
+      <br />
+      <br />
       <div
         data-testid="button-wrapper"
         className={css`
@@ -275,14 +321,16 @@ function Canvas() {
         <button
           type="button"
           data-testid="rectangle-button"
-          onClick={() => drawRectangle()}
+          onClick={() =>
+            drawRectangle({ x: 10, y: 10, w: 100, h: 100, c: "teal" })
+          }
         >
           add rectangle
         </button>
         <button
           type="button"
           data-testid="circle-button"
-          onClick={() => drawCircle()}
+          onClick={() => drawCircle({ x:300, y: 300, r: 50, c: "orange" })}
         >
           add circle
         </button>
@@ -298,16 +346,18 @@ function Canvas() {
           clear
         </button>
       </div>
-
       <canvas
         className={canvasStyle}
         ref={canvasRef}
         width={500}
         height={500}
-        onClick={(e) => {
-          onCanvasClick(e);
-        }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseOut={handleMouseOut}
+        onMouseMove={handleMouseMove}
       />
+      <br />
+      {isDragging ? "dragging..." : "not dragging"}
       {showRect && (
         <div>
           <h2>Rectangle location</h2>
@@ -361,3 +411,6 @@ export default Canvas;
 
 // things to add later
 // validations
+
+
+//shapes.map and combine into two object types
