@@ -20,16 +20,11 @@ function Canvas() {
   const [showRect, setShowRect] = useState(false);
 
   const [dragInit, setDragInit] = useState();
-  const [dragFinal, setDragFinal] = useState();
   const [isDragging, setisDragging] = useState(false);
 
   const canvasRef = useRef(null);
 
   const { mouseX, mouseY } = useMousePosition();
-
-  const randomNum = () => {
-    return Math.floor(Math.random() * 499) + 1;
-  };
 
   // clear canvas
   const clearCanvas = () => {
@@ -42,8 +37,7 @@ function Canvas() {
 
   const drawRectangle = (param) => {
     const { x, y, w, h, c } = param;
-    // getting canvas ref
-    clearCanvas();
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
@@ -89,11 +83,9 @@ function Canvas() {
   }, [rectLocation]);
 
   const drawCircle = (param) => {
+    const { x, y, r, c } = param;
 
-    const {x, y, r, c} = param;
     // getting canvas ref
-
-    clearCanvas();
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
@@ -142,42 +134,6 @@ function Canvas() {
       setCircArea(tempObj);
     }
   }, [circLocation]);
-
-
-  // check location against rectangle location
-  const checkMouseRect = (location) => {
-    if (
-      rectLocation &&
-      location.x > rectArea.x.min &&
-      location.x < rectArea.x.max &&
-      location.y > rectArea.y.min &&
-      location.y < rectArea.y.max
-    ) {
-      setShowRect(true);
-      //saving the starting position
-      setRecMov(rectLocation);
-    } else if (!location.shift) {
-      setShowRect(false);
-    }
-  };
-
-  // check location against circle location
-  // this does not currently account for area
-  const checkMouseCirc = (location) => {
-    if (
-      circLocation &&
-      location.x > circArea.x.min &&
-      location.x < circArea.x.max &&
-      location.y > circArea.y.min &&
-      location.y < circArea.y.max
-    ) {
-      setShowCirc(true);
-      //saving the starting position
-      setCircMov(circLocation);
-    } else if (!location.shift) {
-      setShowCirc(false);
-    }
-  };
 
   // if circle or rectangle are selected, highlight them
   // useEffect(() => {
@@ -239,6 +195,7 @@ function Canvas() {
     setShowRect(false);
     setRectLocation();
     setRectArea();
+    setRecMov();
     clearCanvas();
     // redraw circ
   };
@@ -248,8 +205,44 @@ function Canvas() {
     setShowCirc(false);
     setCircLocation();
     setCircArea();
+    setCircMov();
     clearCanvas();
     // redraw rect
+  };
+
+  // check location against rectangle location
+  const checkMouseRect = (location) => {
+    if (
+      rectLocation &&
+      location.x > rectArea.x.min &&
+      location.x < rectArea.x.max &&
+      location.y > rectArea.y.min &&
+      location.y < rectArea.y.max
+    ) {
+      setShowRect(true);
+      //saving the starting position
+      setRecMov(rectLocation);
+    } else if (!location.shift) {
+      setShowRect(false);
+    }
+  };
+
+  // check location against circle location
+  // this does not currently account for area
+  const checkMouseCirc = (location) => {
+    if (
+      circLocation &&
+      location.x > circArea.x.min &&
+      location.x < circArea.x.max &&
+      location.y > circArea.y.min &&
+      location.y < circArea.y.max
+    ) {
+      setShowCirc(true);
+      //saving the starting position
+      setCircMov(circLocation);
+    } else if (!location.shift) {
+      setShowCirc(false);
+    }
   };
 
   const handleMouseDown = (e) => {
@@ -257,139 +250,205 @@ function Canvas() {
     checkMouseRect(click);
     checkMouseCirc(click);
     setisDragging(true);
-    setDragInit({ x: click.x , y: click.y });
+    setDragInit({ x: click.x, y: click.y });
   };
 
   const handleMouseUp = (e) => {
     setisDragging(false);
     setDragInit();
-    setRecMov();
   };
   const handleMouseOut = (e) => {
     handleMouseUp(e);
   };
 
-  const handleMouseMove = e => {
+  const handleMouseMove = (e) => {
     if (!isDragging) return;
+    const dX = e.clientX - dragInit.x;
+    const dY = e.clientY - dragInit.y;
 
-    if (showRect){
-      const dX = e.clientX - dragInit.x;
-      const dY = e.clientY - dragInit.y;
-      const newParam = {
+    //resetting to prevent snakes
+    clearCanvas();
+    if (showRect) {
+      const rParam = {
         x: recMov.x + dX,
         y: recMov.y + dY,
         w: recMov.w,
         h: recMov.h,
         c: recMov.c,
       };
-      drawRectangle(newParam);
+      drawRectangle(rParam);
     }
-    if (showCirc){
-      const dX = e.clientX - dragInit.x;
-      const dY = e.clientY - dragInit.y;
-      const newParam = {
+    if (showCirc) {
+      const cParam = {
         x: circMov.x + dX,
         y: circMov.y + dY,
         r: circMov.r,
         c: circMov.c,
       };
-      drawCircle(newParam);
+      drawCircle(cParam);
     }
-     
-      
-  }
+    if (!showRect && rectLocation){
+      drawRectangle(rectLocation);
+    }
+    if (!showCirc && circLocation){
+      drawCircle(CircLocation);
+    }
+  };
 
   return (
     <div>
-      {mouseX} {mouseY}
-      <br />
-      {JSON.stringify(circLocation)}
-      <br />
-      <br />
       <div
-        data-testid="button-wrapper"
+        data-testid="left-pane"
         className={css`
-          display: flex;
-          flex-direction: column;
-          width: 200px;
-          margin: auto;
-          height: 100px;
-          justify-content: space-between;
-          margin-bottom: 2rem;
+          width: 60%;
+          float: left;
         `}
       >
-        <button
-          type="button"
-          data-testid="rectangle-button"
-          onClick={() =>
-            drawRectangle({ x: 10, y: 10, w: 100, h: 100, c: "teal" })
-          }
+        {mouseX} {mouseY}
+        <br />
+        Rect:
+        {JSON.stringify(rectLocation)}
+        <br />
+        Cir:
+        {JSON.stringify(circLocation)}
+        <div
+          data-testid="button-wrapper"
+          className={css`
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+            margin: auto;
+            height: 100px;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+          `}
         >
-          add rectangle
-        </button>
-        <button
-          type="button"
-          data-testid="circle-button"
-          onClick={() => drawCircle({ x:300, y: 300, r: 50, c: "orange" })}
-        >
-          add circle
-        </button>
-        <button
-          type="button"
-          data-testid="clear-button"
-          onClick={() => {
-            clearCanvas();
-            deleteCirc();
-            deleteRect();
-          }}
-        >
-          clear
-        </button>
+          <button
+            type="button"
+            data-testid="rectangle-button"
+            disabled={rectLocation}
+            onClick={() =>
+              drawRectangle({ x: 10, y: 10, w: 100, h: 100, c: "teal" })
+            }
+          >
+            add rectangle
+          </button>
+          <button
+            type="button"
+            data-testid="circle-button"
+            disabled={circLocation}
+            onClick={() => drawCircle({ x: 300, y: 300, r: 50, c: "orange" })}
+          >
+            add circle
+          </button>
+          <button
+            type="button"
+            data-testid="clear-button"
+            disabled={!circLocation && !rectLocation}
+            onClick={() => {
+              clearCanvas();
+              deleteCirc();
+              deleteRect();
+            }}
+          >
+            clear
+          </button>
+        </div>
+        <canvas
+          className={canvasStyle}
+          ref={canvasRef}
+          width={500}
+          height={500}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseOut={handleMouseOut}
+          onMouseMove={handleMouseMove}
+        />
+        <br />
+        {isDragging ? "dragging..." : "not dragging"}
       </div>
-      <canvas
-        className={canvasStyle}
-        ref={canvasRef}
-        width={500}
-        height={500}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseOut={handleMouseOut}
-        onMouseMove={handleMouseMove}
-      />
-      <br />
-      {isDragging ? "dragging..." : "not dragging"}
-      {showRect && (
-        <div>
-          <h2>Rectangle location</h2>
-          <label htmlFor="rect-x">
-            x location
-            <input type="number" id="rect-x" value={rectLocation.x} />
-          </label>
-          <label htmlFor="rect-y">
-            y location
-            <input type="number" id="rect-y" value={rectLocation.y} />
-          </label>
-          <button type="button" data-testid="clear-rect" onClick={deleteRect}>
-            delete
-          </button>
-        </div>
-      )}
-      {showCirc && (
-        <div>
-          <h2>Circle location</h2>
-          <label htmlFor="rect-x">
-            x location
-            <input type="number" id="rect-x" value={circLocation.x} />
-          </label>
-          <label htmlFor="rect-y">
-            y location
-            <input type="number" id="rect-y" value={circLocation.y} />
-          </label>
-          <button type="button" data-testid="clear-circ" onClick={deleteCirc}>
-            delete
-          </button>
-        </div>
-      )}
+      <div
+        data-testid="right-pane"
+        className={css`
+          width: 30%;
+          float: left;
+        `}
+      >
+        {showRect && (
+          <div>
+            <h2>Rectangle location</h2>
+            <label htmlFor="rect-x">x location</label>
+            <input
+              type="number"
+              id="rect-x"
+              name="rect-x"
+              value={rectLocation.x}
+              min="1"
+              max="500"
+              onChange={(val) =>
+                drawRectangle({
+                  x: val,
+                  y: rectLocation.y,
+                  w: rectLocation.w,
+                  h: rectLocation.h,
+                  c: rectLocation.c,
+                })
+              }
+            />
+
+            <label htmlFor="rect-y">y location</label>
+            <input
+              type="number"
+              id="rect-y"
+              name="rect-y"
+              value={rectLocation.y}
+              min="1"
+              max="500"
+              onChange={(val) =>
+                drawRectangle({
+                  x: rectLocation.x,
+                  y: val,
+                  w: rectLocation.w,
+                  h: rectLocation.h,
+                  c: rectLocation.c,
+                })
+              }
+            />
+
+            <button type="button" data-testid="clear-rect" onClick={deleteRect}>
+              delete
+            </button>
+          </div>
+        )}
+        {showCirc && (
+          <div>
+            <h2>Circle location</h2>
+            <label htmlFor="rect-x">
+              x location
+              <input
+                type="number"
+                id="rect-x"
+                value={circLocation.x}
+                min="1"
+                max="500"
+              />
+            </label>
+            <label htmlFor="rect-y">
+              y location
+              <input
+                type="number"
+                id="rect-y"
+                value={circLocation.y}
+                min="1"
+                max="500"
+              />
+            </label>
+            <button type="button" data-testid="clear-circ" onClick={deleteCirc}>
+              delete
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -411,6 +470,5 @@ export default Canvas;
 
 // things to add later
 // validations
-
 
 //shapes.map and combine into two object types
