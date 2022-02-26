@@ -256,6 +256,8 @@ function Canvas() {
   const handleMouseUp = (e) => {
     setisDragging(false);
     setDragInit();
+    setCircMov(circLocation);
+    setRecMov(rectLocation);
   };
   const handleMouseOut = (e) => {
     handleMouseUp(e);
@@ -287,11 +289,11 @@ function Canvas() {
       };
       drawCircle(cParam);
     }
-    if (!showRect && rectLocation){
+    if (!showRect && rectLocation) {
       drawRectangle(rectLocation);
     }
-    if (!showCirc && circLocation){
-      drawCircle(CircLocation);
+    if (!showCirc && circLocation) {
+      drawCircle(circLocation);
     }
   };
 
