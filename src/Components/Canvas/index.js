@@ -96,6 +96,7 @@ const Canvas = () => {
     setRectArea();
     setRecMov();
     clearCanvas();
+    storeCanvas();
   };
 
   // restoring local storage
