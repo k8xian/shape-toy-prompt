@@ -10,7 +10,7 @@ import ShapeControlRect from "./ShapeControls/ShapeControlRect";
 import ShapeControlCirc from "./ShapeControls/ShapeControlCirc";
 
 // STYLES
-import * as Styled from "./canvas.styles";
+import * as Styled from './canvas.styles';
 
 const canvasStyle = css`
   border: 1px solid gray;
@@ -340,42 +340,7 @@ const Canvas = () => {
 
   return (
     <div>
-      <Styled.ButtonPane>
-        <Styled.ControlButtons
-          data-testid="draw-rectangle-button"
-          type="button"
-          disabled={rectLocation}
-          onClick={() => drawRectangle(DRAW.RECT)}
-        >
-          draw rectangle
-        </Styled.ControlButtons>
-        <Styled.ControlButtons
-          data-testid="draw-circle-button"
-          type="button"
-          disabled={circLocation}
-          onClick={() => drawCircle(DRAW.CIRC)}
-        >
-          draw circle
-        </Styled.ControlButtons>
-        <Styled.ControlButtons
-          data-testid="clear-button"
-          disabled={!circLocation && !rectLocation}
-          onClick={() => {
-            clearEverything();
-          }}
-        >
-          clear
-        </Styled.ControlButtons>
-        <Styled.ControlButtons
-          type="button"
-          data-testid="save-button"
-          disabled={!rectLocation && !circLocation}
-          onClick={saveCanvas}
-        >
-          save button
-        </Styled.ControlButtons>
-      </Styled.ButtonPane>
-
+      
       <div
         data-testid="left-pane"
         className={css`
@@ -426,7 +391,7 @@ const Canvas = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Canvas;
 
