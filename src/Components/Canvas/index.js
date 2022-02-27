@@ -17,12 +17,22 @@ const canvasStyle = css`
 `;
 
 const Canvas = () => {
-  const [circLocation, setCircLocation] = useState();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const [circLocation, setCircLocation] = useState(() => {
+    const savedCirc = localStorage.getItem("circle");
+    const storedValue = JSON.parse(savedCirc);
+    return storedValue || "";
+  });
   const [circMov, setCircMov] = useState();
   const [circArea, setCircArea] = useState();
   const [showCirc, setShowCirc] = useState(false);
 
-  const [rectLocation, setRectLocation] = useState();
+  const [rectLocation, setRectLocation] = useState(() => {
+    const savedRect = localStorage.getItem("rectangle");
+    const storedValue = JSON.parse(savedRect);
+    return storedValue || "";
+  });
   const [recMov, setRecMov] = useState();
   const [rectArea, setRectArea] = useState();
   const [showRect, setShowRect] = useState(false);
@@ -34,19 +44,48 @@ const Canvas = () => {
 
   const { mouseX, mouseY } = useMousePosition();
 
-  // clear canvas
-  const clearCanvas = () => {
-    if (canvasRef) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      //adding a white background for saving
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+//saving the current location of each to the canvas
+  const storeCanvas = () => {
+    if (rectLocation){
+      localStorage.setItem("rectangle", JSON.stringify(rectLocation));
     }
+
+    if (circLocation){
+      localStorage.setItem("circle", JSON.stringify(circLocation))
+    }
+  }
+
+    // clear canvas
+    const clearCanvas = () => {
+      if (canvasRef) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // adding a white background for saving
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      storeCanvas();
+    };
+  
+  const resetCanvas = () => {
+    clearCanvas();
+    if (showRect && rectLocation) {
+      drawRectangle(rectLocation, 1);
+    } else if (rectLocation) {
+      drawRectangle(rectLocation, false);
+    }
+
+    if (showCirc && circLocation) {
+      drawCircle(circLocation, 1);
+    } else if (circLocation) {
+      drawCircle(circLocation, false);
+    }
+    storeCanvas();
   };
 
-  //separate function to reset states
+  // separate function to reset states
   const clearEverything = () => {
     setShowCirc(false);
     setCircLocation();
@@ -59,9 +98,20 @@ const Canvas = () => {
     clearCanvas();
   };
 
+  // restoring local storage
+  useEffect(() => {
+    if (!isInitialized && canvasRef){
+      resetCanvas();
+      setIsInitialized(true);
+    }
+
+  }, [isInitialized]);
+
+
+
+
   const drawRectangle = (param, select) => {
     const { x, y, w, h, c } = param;
-    console.log(JSON.stringify(param));
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -86,6 +136,7 @@ const Canvas = () => {
     ctx.fillRect(x, y, w, h);
 
     setRectLocation(param);
+    storeCanvas();
   };
 
   const drawCircle = (param, select) => {
@@ -119,7 +170,9 @@ const Canvas = () => {
 
     // setting initial location for circle
     setCircLocation(param);
+    storeCanvas();
   };
+  
 
   // delete rectangle component
   const deleteRect = () => {
@@ -128,10 +181,10 @@ const Canvas = () => {
     setRectArea();
     setRecMov();
     clearCanvas();
+    // restore circle
     if (circLocation) {
       drawCircle(circLocation);
     }
-    // redraw circ
   };
 
   // delete circle component
@@ -141,26 +194,12 @@ const Canvas = () => {
     setCircArea();
     setCircMov();
     clearCanvas();
+    // restore rectangle
     if (rectLocation) {
       drawRectangle(rectLocation);
     }
-    // redraw rect
   };
 
-  const resetCanvas = () => {
-    clearCanvas();
-    if (showRect && rectLocation) {
-      drawRectangle(rectLocation, 1);
-    } else if (rectLocation) {
-      drawRectangle(rectLocation, false);
-    }
-
-    if (showCirc && circLocation) {
-      drawCircle(circLocation, 1);
-    } else if (circLocation) {
-      drawCircle(circLocation, false);
-    }
-  };
 
   const getRectArea = () => {
     if (rectLocation && canvasRef) {
@@ -170,7 +209,7 @@ const Canvas = () => {
       tempObj.y.min = canvasRef.current.offsetTop + rectLocation.y;
       tempObj.y.max = tempObj.y.min + rectLocation.h;
       setRectArea(tempObj);
-      //explicit return in case state change subject to rerender
+      // explicit return in case state change subject to rerender
       return tempObj;
     }
   };
@@ -185,7 +224,7 @@ const Canvas = () => {
         canvasRef.current.offsetTop + circLocation.y - circLocation.r;
       tempObj.y.max = tempObj.y.min + circLocation.r * 2;
       setCircArea(tempObj);
-      //explicit return in case state change subject to rerender
+      // explicit return in case state change subject to rerender
       return tempObj;
     }
   };
@@ -202,13 +241,13 @@ const Canvas = () => {
     ) {
       setShowRect(true);
 
-      //saving the starting position
+      // saving the starting position
       setRecMov(rectLocation);
-      //rerender with highlight
+      // rerender with highlight
       drawRectangle(rectLocation, 1);
     } else if (!location.shift) {
       setShowRect(false);
-      //removing highlight
+      // removing highlight
       // drawRectangle(rectLocation, false);
     }
   };
@@ -224,13 +263,13 @@ const Canvas = () => {
       location.y < circArea.y.max
     ) {
       setShowCirc(true);
-      //saving the starting position
+      // saving the starting position
       setCircMov(circLocation);
-      //rerender with highlight
+      // rerender with highlight
       drawCircle(circLocation, 1);
     } else if (!location.shift) {
       setShowCirc(false);
-      //remove highlight
+      // remove highlight
       // drawCircle(circLocation, false);
     }
   };
@@ -246,7 +285,7 @@ const Canvas = () => {
   const handleMouseUp = (e) => {
     setisDragging(false);
     setDragInit();
-    //updating latest location for when both move together
+    // updating latest location for when both move together
     setCircMov(circLocation);
     setRecMov(rectLocation);
     resetCanvas();
@@ -257,7 +296,7 @@ const Canvas = () => {
 
   const handleMouseMove = (e) => {
     const location = { x: e.clientX, y: e.clientY };
-    //checking for hover
+    // checking for hover
     if (!isDragging && location) {
       getRectArea();
       getCircArea();
@@ -287,11 +326,12 @@ const Canvas = () => {
       } else if (circLocation) {
         drawCircle(circLocation, false);
       }
+      // else if we are dragging an object
     } else {
       const dX = e.clientX - dragInit.x;
       const dY = e.clientY - dragInit.y;
 
-      //resetting to prevent snakes
+      // resetting to prevent snakes
       clearCanvas();
       if (showRect) {
         const rParam = {
@@ -318,12 +358,13 @@ const Canvas = () => {
       if (!showCirc && circLocation) {
         drawCircle(circLocation, false);
       }
+      storeCanvas();
     }
   };
 
   // Save | Download image
   const downloadImage = (data, filename) => {
-    var a = document.createElement("a");
+    const a = document.createElement("a");
     a.href = data;
     a.download = filename;
     document.body.appendChild(a);
@@ -331,7 +372,7 @@ const Canvas = () => {
   };
 
   const saveCanvas = () => {
-    //making sure background is white
+    // making sure background is white
     clearCanvas();
     resetCanvas();
     const dataURL = canvasRef.current.toDataURL("image/jpeg", 1.0);
@@ -524,7 +565,6 @@ export default Canvas;
 // todo
 
 // fix highlight on hover
-// local storage
 // undo
 
 // make it pretty

@@ -1,22 +1,26 @@
+# Shape Toy Prompt 
+Kate Christian
 
+## Sructure
+The project was initialized with [Create React App](https://create-react-app.dev/) and uses [Emotion](https://emotion.sh/docs/styled) for styled components and some inline styling. It uses [React Hooks](https://reactjs.org/docs/hooks-intro.html) to manage the states of the circle and rectangle components. The controls are handled by using [Mouse Events](https://developer.mozilla.org/en-US/docs/Web/API/Element#mouse_events) within the Canvas node, and the changes are stored in the respective states. The shapes can be manipulated via thsoe mouse events and range and control [inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input). This project also uses [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to preserve the most recent state of the canvas, and converts the canvas ref to .jpg via [.toDataURL](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) for saving.
 
-#Write Up Requirements
+## Approach
 
-Write an overview of your implementation (no more than one page)
+This solution uses React Hooks to implement the features as they are shown in this [sample](https://youtu.be/0ZUG57eZwx4). React is a great choice for UI-heavy implementations that let you spin up a solution to something like this quickly. React alone is not great for managing complex data structures for projects like this where you want to store and manage a lot of little moving parts. This project would benefit from a state management tool like [Redux](https://redux.js.org/), [MobX](https://mobx.js.org/README.html), [Jotai](https://jotai.org/docs/api/core). There would be different ways to implement the above, but I had concerns about the overhead of configuring too many libraries for this project when I had limited time to complete it. A state management tool would have been a higher fidelity solution to make adding multiple iterations of each shape type possible and managing each one. This project definitely felt like “coding upstream,” from the get-go because Canvas and React are somewhat at odds, and trying to use Hooks alone to try to manage data is possible but would also be quickly complex and unreadable because you need to use prop spreading and manage the object externally. I could have written some helpers to accomplish this more neatly, but I also started out with limited familiarity with canvas and trying to get the controls to work took some time.
 
-Write high level overview of the decisions you made in your code.
+## Bottlenecks
 
-Document concepts you learned that future programmers reading your code would likely benefit from knowing.
+It is very clunky to maintain the state of these two shapes, and more, with this approach. Because canvas needs to rewrite the entire image when it moves to avoid “snakes,” I had to be sure I was adding additional calls to manage the other shape if it was on the page. I had to check if that shape was supposed to show a hover effect or a selection effect or both. This many operations would definitely make this page slow at a larger scale. It would be much better to have a single object that can be iterated through for all changes and drawn at once and have the parts of that object only be modified where there were changes. It would also be much easier to use a library like [this](https://konvajs.org/) that *does* abstract away the Canvas API becuase that's easier. Which is, of course, why the prompt specifies not to. If this were to really be scaled with a full backend, it seems like a great use case for [GraphQL](https://graphql.org/).
 
-Describe how you think this implementation would or wouldn't be able to respond to future feature requests (It's okay if the answer is it won't but please explore why you think that is true).
+## Future Development
+### Local Storage
 
-Write out any expected performance bottlenecks you see with this approach, and at a high level, how you think those should be addressed.
+This is already working, but a nicer solution would be creating a custom hook for it this like this [example](https://blog.logrocket.com/using-localstorage-react-hooks/).
 
-Write out a short plan for what you would need to change / add to your program to support the following features
+### Undo / Redo
 
-localStorage based persistence
+A unified data structure would be useful here. I could store the object every time there was a change and then have a counter for going through the storage array and discarding the "future" objects and restoring past ones. Here's an [example](https://redux.js.org/usage/implementing-undo-history) of how that could be handled in Redux.
 
-undo/redo
+### Save
 
-save to image - already implemented
-
+This is already working by [converting](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) the Canvas Ref to .jpg file and then appending that element to the document via [document.createElement()](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement), and adding a click event that downloads the image. 

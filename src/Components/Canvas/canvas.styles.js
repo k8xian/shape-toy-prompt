@@ -1,5 +1,13 @@
 import styled from "@emotion/styled";
 
+export const Title = styled.h1`
+  background-color: rgba(0,0,0,.15);
+  color: rgba(0,0,0,.54);
+  text-align: center;
+  height: 3rem;
+  margin: 0 0 2rem;
+`;
+
 export const CanvasStyle = styled.canvas`
   border: 1px solid gray;
 `;
