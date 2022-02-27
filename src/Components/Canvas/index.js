@@ -558,18 +558,7 @@ const Canvas = () => {
 
 export default Canvas;
 
-//current defects- when selected, highlights no matter what on canvas
-//hover is super weird and wonky
-
-//explain why removed use effects
-
 // todo
-
-// fix highlight on hover
-// undo
-
-// make it pretty
-
+// fix bug with height and width manipulation
+// fix hover bug with whole canvas being targeted (probably related)
 // refactor
-// component for displaying content
-// helper functions
