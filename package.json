@@ -37,6 +37,6 @@
   },
   "main": "index.js",
   "author": "kate christian",
-  "license": "MIT",
+  "license": "MIT license",
   "description": "shape-toy-prompt"
 }
