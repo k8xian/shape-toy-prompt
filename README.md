@@ -2,7 +2,7 @@
 Kate Christian
 
 `yarn install`  
-`yarn start`
+`yarn start`  
 [deployment link](https://shape-toy-prompt.vercel.app/)
 
 ## Structure
