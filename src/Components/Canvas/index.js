@@ -109,19 +109,15 @@ const Canvas = () => {
     const ctx = canvas.getContext("2d");
 
     const offset = select === 1 ? OFFSET.SELECT : OFFSET.HOVER;
-    const twoOffset = offset * 2;
 
     if (showRect || select) {
       const highlight = {
         x: x - offset,
         y: y - offset,
-        w: w + twoOffset,
-        h: h + twoOffset,
+        w: w + offset * 2,
+        h: h + offset * 2,
         c: select === 1 ? COLORS.SELECT : COLORS.HOVER,
       };
-      console.log(offset);
-      console.log(twoOffset);
-      console.log(JSON.stringify(highlight))
       ctx.fillStyle = highlight.c;
       ctx.fillRect(highlight.x, highlight.y, highlight.w, highlight.h);
     }
