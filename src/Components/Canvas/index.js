@@ -91,7 +91,9 @@ const Canvas = () => {
     setRectArea();
     setRecMov();
     clearCanvas();
-    storeCanvas();
+    //clearing local storage
+    localStorage.removeItem("rectangle");
+    localStorage.removeItem("circle");
   };
 
   // restoring local storage
@@ -467,7 +469,6 @@ const Canvas = () => {
 export default Canvas;
 
 // todo
-// fix bug with height and width manipulation
 // fix hover bug with whole canvas being targeted (probably related)
 // refactor
 // deploy
