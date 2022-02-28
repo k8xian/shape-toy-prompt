@@ -8,7 +8,7 @@ import Canvas from './Components/Canvas';
 
 function App() {
   return (
-    <div className="App">
+    <div className="Shape-Toy-App">
     <Canvas />
     </div>
   );
