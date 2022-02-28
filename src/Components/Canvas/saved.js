@@ -61,7 +61,6 @@ const Canvas = () => {
 
   const drawRectangle = (param, select) => {
     const { x, y, w, h, c } = param;
-    console.log(JSON.stringify(param));
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");

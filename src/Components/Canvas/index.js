@@ -2,12 +2,10 @@ import React, { useRef, useState, useEffect } from "react";
 import { css } from "@emotion/css";
 
 // HELPERS
-import useMousePosition from "../../Helpers/mousePosition";
 import { COLORS, OFFSET, VALUES, DRAW } from "../../Helpers/Constants";
 
 // COMPONENTS
-import ShapeControlRect from "./ShapeControls/ShapeControlRect";
-import ShapeControlCirc from "./ShapeControls/ShapeControlCirc";
+import ShapeControl from "./ShapeControl";
 
 // STYLES
 import * as Styled from "./canvas.styles";
@@ -42,33 +40,30 @@ const Canvas = () => {
 
   const canvasRef = useRef(null);
 
-  const { mouseX, mouseY } = useMousePosition();
-
-
-//saving the current location of each to the canvas
+  //saving the current location of each to the canvas
   const storeCanvas = () => {
-    if (rectLocation){
+    if (rectLocation) {
       localStorage.setItem("rectangle", JSON.stringify(rectLocation));
     }
 
-    if (circLocation){
-      localStorage.setItem("circle", JSON.stringify(circLocation))
+    if (circLocation) {
+      localStorage.setItem("circle", JSON.stringify(circLocation));
     }
-  }
+  };
 
-    // clear canvas
-    const clearCanvas = () => {
-      if (canvasRef) {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // adding a white background for saving
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      storeCanvas();
-    };
-  
+  // clear canvas
+  const clearCanvas = () => {
+    if (canvasRef) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // adding a white background for saving
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    storeCanvas();
+  };
+
   const resetCanvas = () => {
     clearCanvas();
     if (showRect && rectLocation) {
@@ -101,15 +96,11 @@ const Canvas = () => {
 
   // restoring local storage
   useEffect(() => {
-    if (!isInitialized && canvasRef){
+    if (!isInitialized && canvasRef) {
       resetCanvas();
       setIsInitialized(true);
     }
-
   }, [isInitialized]);
-
-
-
 
   const drawRectangle = (param, select) => {
     const { x, y, w, h, c } = param;
@@ -118,15 +109,19 @@ const Canvas = () => {
     const ctx = canvas.getContext("2d");
 
     const offset = select === 1 ? OFFSET.SELECT : OFFSET.HOVER;
+    const twoOffset = offset * 2;
 
     if (showRect || select) {
       const highlight = {
         x: x - offset,
         y: y - offset,
-        w: w + offset * 2,
-        h: h + offset * 2,
+        w: w + twoOffset,
+        h: h + twoOffset,
         c: select === 1 ? COLORS.SELECT : COLORS.HOVER,
       };
+      console.log(offset);
+      console.log(twoOffset);
+      console.log(JSON.stringify(highlight))
       ctx.fillStyle = highlight.c;
       ctx.fillRect(highlight.x, highlight.y, highlight.w, highlight.h);
     }
@@ -173,7 +168,6 @@ const Canvas = () => {
     setCircLocation(param);
     storeCanvas();
   };
-  
 
   // delete rectangle component
   const deleteRect = () => {
@@ -200,7 +194,6 @@ const Canvas = () => {
       drawRectangle(rectLocation);
     }
   };
-
 
   const getRectArea = () => {
     if (rectLocation && canvasRef) {
@@ -415,17 +408,16 @@ const Canvas = () => {
           disabled={!rectLocation && !circLocation}
           onClick={saveCanvas}
         >
-          save button
+          save
         </Styled.ControlButtons>
       </Styled.ButtonPane>
 
       <div
         data-testid="left-pane"
         className={css`
-        width: 30%;
+        width: 502px;
         float: left;
         text-align: left;
-        min-width: 600px;
     }
         `}
       >
@@ -442,114 +434,34 @@ const Canvas = () => {
         />
       </div>
       <div
-        data-testid="right-pane"
+        data-testid="control-pane"
         className={css`
           width: 30%;
+          min-width: 300px;
           float: left;
         `}
       >
         {showRect && (
-          <div
-            className={css`
-              display: flex;
-              flex-direction: column;
-            `}
-          >
-            <h2>Rectangle location</h2>X location: {rectLocation.x}Y location"{" "}
-            {rectLocation.y}
-            <label htmlFor="height">Height: {rectLocation.h}px</label>
-            <input
-              type="range"
-              id="rect-height"
-              name="height"
-              min="30"
-              max="300"
-              value={rectLocation.h}
-              onChange={(e) => {
-                clearCanvas();
-                drawRectangle({ ...rectLocation, h: e.target.value }, 1);
-                if (circLocation) {
-                  drawCircle(circLocation);
-                }
-              }}
-            />
-            <label htmlFor="width">Width: {rectLocation.w}px</label>
-            <input
-              type="range"
-              id="rect-width"
-              name="width"
-              min="30"
-              max="300"
-              value={rectLocation.w}
-              onChange={(e) => {
-                clearCanvas();
-                drawRectangle({ ...rectLocation, w: e.target.value }, 1);
-                if (circLocation) {
-                  drawCircle(circLocation);
-                }
-              }}
-            />
-            <label htmlFor="rect-color">Color</label>
-            <input
-              type="color"
-              id="rect-color"
-              name="rect-color"
-              value={rectLocation.c}
-              onChange={(e) => {
-                clearCanvas();
-                drawRectangle({ ...rectLocation, c: e.target.value }, 1);
-                if (circLocation) {
-                  drawCircle(circLocation);
-                }
-              }}
-            />
-            <button type="button" data-testid="clear-rect" onClick={deleteRect}>
-              delete
-            </button>
-          </div>
+          <ShapeControl
+            shapeLocation={rectLocation}
+            otherShapeLocation={circLocation}
+            clearCanvas={clearCanvas}
+            draw={drawRectangle}
+            drawOther={drawCircle}
+            deleteShape={deleteRect}
+            isCircle={false}
+          />
         )}
         {showCirc && (
-          <div
-          className={css`
-            display: flex;
-            flex-direction: column;
-          `}
-        >
-          <h2>Circle location</h2>X location: {circLocation.x}Y location:{" "}
-          {circLocation.y}
-          <label htmlFor="width">Radius: {circLocation.r}px</label>
-          <input
-            type="range"
-            id="radius"
-            name="radius"
-            min="15"
-            max="150"
-            value={circLocation.r}
-            onChange={(e) => {
-              clearCanvas();
-              drawCircle({ ...circLocation, r: e.target.value }, 1);
-              if (rectLocation) {
-                drawRectangle(rectLocation);
-              }
-            }}
+          <ShapeControl
+            shapeLocation={circLocation}
+            otherShapeLocation={rectLocation}
+            clearCanvas={clearCanvas}
+            draw={drawCircle}
+            drawOther={drawRectangle}
+            deleteShape={deleteCirc}
+            isCircle
           />
-          <input
-            type="color"
-            id="circ-color"
-            name="circ-color"
-            value={circLocation.c}
-            onChange={(e) => {
-              clearCanvas();
-              drawCircle({ ...circLocation, c: e.target.value }, 1);
-              if (rectLocation) {
-                drawRectangle(rectLocation);
-              }
-            }}
-          />
-          <button type="button" data-testid="clear-circ" onClick={deleteCirc}>
-            delete
-          </button>
-        </div>
         )}
       </div>
     </div>
@@ -562,3 +474,5 @@ export default Canvas;
 // fix bug with height and width manipulation
 // fix hover bug with whole canvas being targeted (probably related)
 // refactor
+// deploy
+// add instructions for running locally

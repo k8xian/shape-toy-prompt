@@ -7,6 +7,7 @@ body {
 
 button {
   font-family: 'Roboto Slab', serif;
+  cursor: pointer;
 }
 
 code {
