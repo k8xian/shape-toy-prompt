@@ -79,15 +79,15 @@ const Canvas = () => {
   const resetCanvas = () => {
     clearCanvas();
     if (showRect && rectLocation) {
-      drawRectangle(rectLocation, 1);
+      drawRectangle({...rectLocation, s: true});
     } else if (rectLocation) {
       drawRectangle({ ...rectLocation, ...RESET });
     }
 
     if (showCirc && circLocation) {
-      drawCircle(circLocation, 1);
+      drawCircle({...circLocation, s: true});
     } else if (circLocation) {
-      drawCircle(circLocation, false);
+      drawCircle({...circLocation, ...RESET});
     }
     storeCanvas();
   };
@@ -177,7 +177,7 @@ const Canvas = () => {
       ctx.stroke();
     }
 
-    if (s) {
+    if (showCirc || s) {
       const select = {
         x: x,
         y: y,
@@ -265,12 +265,6 @@ const Canvas = () => {
         setRecMov(rectLocation);
         // rerender with highlight
         drawRectangle({ ...rectLocation, s: true });
-      } else {
-        setShowRect(false);
-        // saving the starting position
-        setRecMov();
-        // rerender with highlight
-        drawRectangle({ ...rectLocation, ...RESET });
       }
     } else if (!location.shift) {
       setShowRect(false);
@@ -289,13 +283,7 @@ const Canvas = () => {
         setCircMov(circLocation);
         // rerender with highlight
         drawCircle({ ...circLocation, s: true });
-      } else {
-        setShowCirc(false);
-        // saving the starting position
-        setCircMov();
-        // rerender with highlight
-        drawCircle({ ...circLocation, ...RESET });
-      }
+      } 
     } else if (!location.shift) {
       setShowCirc(false);
     }
@@ -327,27 +315,21 @@ const Canvas = () => {
 
   const handleMouseMove = (e) => {
     const location = { x: e.clientX, y: e.clientY };
-    console.log("location", location);
     // checking for hover
     if (!isDragging && location) {
       const a = findAreas();
-      console.log("areas", a);
       const { areaR, areaC } = a;
       clearCanvas();
       resetCanvas();
-      if (rectLocation) {
-        const hover = checkArea(location, areaR.x, areaR.y);
-        if (hover) {
-          drawRectangle({ ...rectLocation, hv: true });
-        } else {
-          drawRectangle({ ...rectLocation, ...RESET });
-        }
+      if (rectLocation && checkArea(location, areaR.x, areaR.y)) {
+        drawRectangle({...rectLocation, hv: true});
+      } else if (rectLocation) {
+        drawRectangle({...rectLocation, ...RESET});
       }
-      if (circLocation) {
-        const hover = checkArea(location, areaC.x, areaC.y);
-        if (hover) {
-          drawCircle({ ...circLocation, hv: true });
-        } else drawCircle({ ...circLocation, ...RESET });
+      if (circLocation && checkArea(location, areaC.x, areaC.y)) {
+        drawCircle({...circLocation, hv: true});
+      } else if (circLocation) {
+        drawCircle({...circLocation, ...RESET});
       }
       // else if we are dragging an object
     } else {
