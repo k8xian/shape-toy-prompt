@@ -1,11 +1,13 @@
 import styled from "@emotion/styled";
 
 export const Title = styled.h1`
-  background-color: rgba(0, 0, 0, 0.15);
-  color: rgba(0, 0, 0, 0.54);
+  background-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.65);
   text-align: left;
   padding-left: 28px;
-  height: 3rem;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  font-size: 1.8rem;
   margin: 0 0 2rem;
 `;
 

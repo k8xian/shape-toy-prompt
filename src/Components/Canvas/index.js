@@ -373,7 +373,7 @@ const Canvas = () => {
 
   return (
     <div>
-      <Styled.Title>shape toy prompt</Styled.Title>
+      <Styled.Title>shape toy prompt | kate christian</Styled.Title>
       <Styled.ButtonPane>
         <Styled.ControlButtons
           data-testid="draw-rectangle-button"
@@ -419,7 +419,6 @@ const Canvas = () => {
     }
         `}
       >
-        {" "}
         <canvas
           className={canvasStyle}
           ref={canvasRef}
@@ -430,7 +429,11 @@ const Canvas = () => {
           onMouseOut={handleMouseOut}
           onMouseMove={handleMouseMove}
         />
+
       </div>
+      {circArea && JSON.stringify(circArea)}
+      <br />
+      {rectArea && JSON.stringify(rectArea)}
       <div
         data-testid="control-pane"
         className={css`
