@@ -19,7 +19,7 @@ const ShapeControl = ({
       className={css`
         display: flex;
         flex-direction: column;
-        border-top: 2px solid rgba(0,0,0,.54);
+        border-top: 2px solid rgba(0, 0, 0, 0.54);
         margin-bottom: 2rem;
       `}
     >
@@ -47,6 +47,7 @@ const ShapeControl = ({
             width: 50%;
             height: 2.5rem;
             margin: 0;
+            text-align: center;
             line-height: 2.5rem;
           `}
         >
@@ -69,7 +70,11 @@ const ShapeControl = ({
                 value={r}
                 onChange={(e) => {
                   clearCanvas();
-                  draw({ ...shapeLocation, r: parseInt(e.target.value) }, 1);
+                  draw({
+                    ...shapeLocation,
+                    r: parseInt(e.target.value),
+                    s: true,
+                  });
                   if (otherShapeLocation) {
                     drawOther(otherShapeLocation);
                   }
@@ -91,7 +96,11 @@ const ShapeControl = ({
                 value={w}
                 onChange={(e) => {
                   clearCanvas();
-                  draw({ ...shapeLocation, w: parseInt(e.target.value) }, 1);
+                  draw({
+                    ...shapeLocation,
+                    w: parseInt(e.target.value),
+                    s: true,
+                  });
                   if (otherShapeLocation) {
                     drawOther(otherShapeLocation);
                   }
@@ -109,7 +118,11 @@ const ShapeControl = ({
                 value={h}
                 onChange={(e) => {
                   clearCanvas();
-                  draw({ ...shapeLocation, h: parseInt(e.target.value) }, 1);
+                  draw({
+                    ...shapeLocation,
+                    h: parseInt(e.target.value),
+                    s: true,
+                  });
                   if (otherShapeLocation) {
                     drawOther(otherShapeLocation);
                   }
@@ -122,12 +135,12 @@ const ShapeControl = ({
         <Styled.ControlInfo>
           <input
             type="color"
-            id="circ-color"
-            name="circ-color"
+            id="color"
+            name="color"
             value={c}
             onChange={(e) => {
               clearCanvas();
-              draw({ ...shapeLocation, c: e.target.value }, 1);
+              draw({ ...shapeLocation, c: e.target.value, s: true});
               if (otherShapeLocation) {
                 drawOther(otherShapeLocation);
               }

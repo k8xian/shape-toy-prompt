@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { css } from "@emotion/css";
 
 // UTILS
-import { COLORS, OFFSET, VALUES, DRAW } from "../../utils/Constants";
+import { COLORS, OFFSET, VALUES, DRAW, RESET } from "../../utils/Constants";
 import { findRectArea, findCircArea, checkArea } from "../../utils/Helpers";
 
 // COMPONENTS
@@ -81,7 +81,7 @@ const Canvas = () => {
     if (showRect && rectLocation) {
       drawRectangle(rectLocation, 1);
     } else if (rectLocation) {
-      drawRectangle(rectLocation, false);
+      drawRectangle({ ...rectLocation, ...RESET });
     }
 
     if (showCirc && circLocation) {
@@ -117,24 +117,34 @@ const Canvas = () => {
   }, [isInitialized]);
 
   // drawing rectangle and hover/select
-  const drawRectangle = (param, select) => {
-    const { x, y, w, h, c } = param;
+  const drawRectangle = (param) => {
+    const { x, y, w, h, c, s, hv } = param;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    const offset = select === 1 ? OFFSET.SELECT : OFFSET.HOVER;
-
-    if (showRect || select) {
-      const highlight = {
-        x: x - offset,
-        y: y - offset,
-        w: w + offset * 2,
-        h: h + offset * 2,
-        c: select === 1 ? COLORS.SELECT : COLORS.HOVER,
+    if (hv) {
+      const hover = {
+        x: x - OFFSET.HOVER,
+        y: y - OFFSET.HOVER,
+        w: w + OFFSET.HOVER * 2,
+        h: h + OFFSET.HOVER * 2,
       };
-      ctx.fillStyle = highlight.c;
-      ctx.fillRect(highlight.x, highlight.y, highlight.w, highlight.h);
+      ctx.lineWidth = OFFSET.HOVERWIDTH;
+      ctx.strokeStyle = COLORS.HOVER;
+      ctx.strokeRect(hover.x, hover.y, hover.w, hover.h);
+    }
+
+    if (showRect || s) {
+      const select = {
+        x: x - OFFSET.SELECT,
+        y: y - OFFSET.SELECT,
+        w: w + OFFSET.SELECT * 2,
+        h: h + OFFSET.SELECT * 2,
+      };
+      ctx.lineWidth = OFFSET.SELECTWIDTH;
+      ctx.strokeStyle = COLORS.SELECT;
+      ctx.strokeRect(select.x, select.y, select.w, select.h);
     }
 
     // drawing rectangle
@@ -147,27 +157,37 @@ const Canvas = () => {
   };
 
   // drawing circle and hover/select
-  const drawCircle = (param, select) => {
-    const { x, y, r, c } = param;
+  const drawCircle = (param) => {
+    const { x, y, r, c, s, hv } = param;
 
     // getting canvas ref
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    const offset = select === 1 ? OFFSET.SELECT : OFFSET.HOVER;
-
-    if (showCirc || select) {
-      const highlight = {
+    if (hv) {
+      const hover = {
         x: x,
         y: y,
-        radius: r + offset,
-        color: select === 1 ? COLORS.SELECT : COLORS.HOVER,
+        r: r + OFFSET.HOVER,
       };
-
       ctx.beginPath();
-      ctx.arc(highlight.x, highlight.y, highlight.radius, 0, 2 * Math.PI);
-      ctx.fillStyle = highlight.color;
-      ctx.fill();
+      ctx.arc(hover.x, hover.y, hover.r, 0, 2 * Math.PI);
+      ctx.lineWidth = OFFSET.HOVERWIDTH;
+      ctx.strokeStyle = COLORS.HOVER;
+      ctx.stroke();
+    }
+
+    if (s) {
+      const select = {
+        x: x,
+        y: y,
+        r: r + OFFSET.SELECT,
+      };
+      ctx.beginPath();
+      ctx.arc(select.x, select.y, select.r, 0, 2 * Math.PI);
+      ctx.lineWidth = OFFSET.SELECTWIDTH;
+      ctx.strokeStyle = COLORS.SELECT;
+      ctx.stroke();
     }
 
     // drawing circle
@@ -215,7 +235,7 @@ const Canvas = () => {
     localStorage.removeItem("rectangle");
     // restore circle
     if (circLocation) {
-      drawCircle(circLocation);
+      drawCircle({ ...circLocation, ...RESET });
     }
   };
 
@@ -229,7 +249,7 @@ const Canvas = () => {
     localStorage.removeItem("circle");
     // restore rectangle
     if (rectLocation) {
-      drawRectangle(rectLocation);
+      drawRectangle({ ...rectLocation, ...RESET });
     }
   };
 
@@ -239,15 +259,21 @@ const Canvas = () => {
     const { areaR } = a;
     const { x, y } = areaR;
     if (rectLocation && checkArea(location, x, y)) {
-      setShowRect(true);
-      // saving the starting position
-      setRecMov(rectLocation);
-      // rerender with highlight
-      drawRectangle(rectLocation, 1);
+      if (!showRect) {
+        setShowRect(true);
+        // saving the starting position
+        setRecMov(rectLocation);
+        // rerender with highlight
+        drawRectangle({ ...rectLocation, s: true });
+      } else {
+        setShowRect(false);
+        // saving the starting position
+        setRecMov();
+        // rerender with highlight
+        drawRectangle({ ...rectLocation, ...RESET });
+      }
     } else if (!location.shift) {
       setShowRect(false);
-      // removing highlight
-      // drawRectangle(rectLocation, false);
     }
   };
 
@@ -257,15 +283,21 @@ const Canvas = () => {
     const { areaC } = a;
     const { x, y } = areaC;
     if (circLocation && checkArea(location, x, y)) {
-      setShowCirc(true);
-      // saving the starting position
-      setCircMov(circLocation);
-      // rerender with highlight
-      drawCircle(circLocation, 1);
+      if (!showCirc) {
+        setShowCirc(true);
+        // saving the starting position
+        setCircMov(circLocation);
+        // rerender with highlight
+        drawCircle({ ...circLocation, s: true });
+      } else {
+        setShowCirc(false);
+        // saving the starting position
+        setCircMov();
+        // rerender with highlight
+        drawCircle({ ...circLocation, ...RESET });
+      }
     } else if (!location.shift) {
       setShowCirc(false);
-      // remove highlight
-      // drawCircle(circLocation, false);
     }
   };
 
@@ -293,7 +325,6 @@ const Canvas = () => {
     handleMouseUp(e);
   };
 
-
   const handleMouseMove = (e) => {
     const location = { x: e.clientX, y: e.clientY };
     console.log("location", location);
@@ -303,15 +334,20 @@ const Canvas = () => {
       console.log("areas", a);
       const { areaR, areaC } = a;
       clearCanvas();
-      if (rectLocation && checkArea(location, areaR.x, areaR.y)) {
-        drawRectangle(rectLocation, 2);
-      } else if (rectLocation) {
-        drawRectangle(rectLocation, false);
+      resetCanvas();
+      if (rectLocation) {
+        const hover = checkArea(location, areaR.x, areaR.y);
+        if (hover) {
+          drawRectangle({ ...rectLocation, hv: true });
+        } else {
+          drawRectangle({ ...rectLocation, ...RESET });
+        }
       }
-      if (circLocation && checkArea(location, areaC.x, areaC.y)) {
-        drawCircle(circLocation, 2);
-      } else if (circLocation) {
-        drawCircle(circLocation, false);
+      if (circLocation) {
+        const hover = checkArea(location, areaC.x, areaC.y);
+        if (hover) {
+          drawCircle({ ...circLocation, hv: true });
+        } else drawCircle({ ...circLocation, ...RESET });
       }
       // else if we are dragging an object
     } else {
@@ -327,8 +363,10 @@ const Canvas = () => {
           w: recMov.w,
           h: recMov.h,
           c: recMov.c,
+          s: true,
+          hv: false,
         };
-        drawRectangle(rParam, 1);
+        drawRectangle(rParam);
       }
       if (showCirc) {
         const cParam = {
@@ -336,14 +374,16 @@ const Canvas = () => {
           y: circMov.y + dY,
           r: circMov.r,
           c: circMov.c,
+          s: true,
+          hv: false,
         };
-        drawCircle(cParam, 1);
+        drawCircle(cParam);
       }
       if (!showRect && rectLocation) {
-        drawRectangle(rectLocation, false);
+        drawRectangle({ ...rectLocation, ...RESET });
       }
       if (!showCirc && circLocation) {
-        drawCircle(circLocation, false);
+        drawCircle({...circLocation, ...RESET });
       }
       storeCanvas();
     }
@@ -368,6 +408,7 @@ const Canvas = () => {
 
   return (
     <div>
+      {isDragging.toString()}
       <Styled.Title>shape toy prompt | kate christian</Styled.Title>
       <Styled.ButtonPane>
         <Styled.ControlButtons
