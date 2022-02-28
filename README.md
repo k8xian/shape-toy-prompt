@@ -21,7 +21,7 @@ For a more robust UI, I'd really like to use [Tailwind](https://tailwindcss.com/
 ## Future Development
 ### Local Storage
 
-This is already working, but a nicer solution would be creating a custom hook for it this like this [example](https://blog.logrocket.com/using-localstorage-react-hooks/).
+This is mostly working, but a nicer solution would be creating a custom hook for it this like this [example](https://blog.logrocket.com/using-localstorage-react-hooks/).
 
 ### Undo / Redo
 
@@ -29,4 +29,4 @@ A unified data structure would be useful here. I could store the object every ti
 
 ### Save
 
-This is already working by [converting](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) the Canvas Ref to .jpg file and then appending that element to the document via [document.createElement()](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement), and adding a click event that downloads the image. 
+This is working by [converting](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) the Canvas Ref to .jpg file and then appending that element to the document via [document.createElement()](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement), and adding a click event that downloads the image.
