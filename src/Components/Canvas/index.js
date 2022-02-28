@@ -390,7 +390,6 @@ const Canvas = () => {
 
   return (
     <div>
-      {isDragging.toString()}
       <Styled.Title>shape toy prompt | kate christian</Styled.Title>
       <Styled.ButtonPane>
         <Styled.ControlButtons

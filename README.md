@@ -30,3 +30,7 @@ A unified data structure would be useful here. I could store the object every ti
 ### Save
 
 This is working by [converting](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) the Canvas Ref to .jpg file and then appending that element to the document via [document.createElement()](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement), and adding a click event that downloads the image.
+
+## Defects
+
+Currently the hover effect over the circle treats it as a square. I have a function incorporating better math into a simpler function, but I got lost somewhere implementing it with the mouse events, and forgot whether I was using values relative to the canvas or the whole window. That initial work is [here](https://github.com/k8xian/shape-toy-prompt/tree/math-refactor).
