@@ -3,7 +3,7 @@ import { css } from "@emotion/css";
 
 // UTILS
 import { COLORS, OFFSET, VALUES, DRAW, RESET } from "../../utils/Constants";
-import { findRectArea, findCircArea, checkArea } from "../../utils/Helpers";
+import {isInCircle, isInRectangle } from "../../utils/Helpers";
 
 // COMPONENTS
 import ShapeControl from "./ShapeControl";
@@ -17,7 +17,6 @@ const canvasStyle = css`
 
 const Canvas = () => {
   const [isInitialized, setIsInitialized] = useState(false);
-
   // current location of circle
   const [circLocation, setCircLocation] = useState(() => {
     const savedCirc = localStorage.getItem("circle");
@@ -26,8 +25,6 @@ const Canvas = () => {
   });
   // location of circle when it beings moving
   const [circMov, setCircMov] = useState();
-  // current relative area of circle
-  const [circArea, setCircArea] = useState();
   // whether circle is selected
   const [showCirc, setShowCirc] = useState(false);
 
@@ -39,8 +36,6 @@ const Canvas = () => {
   });
   // location of circle when it beings moving
   const [recMov, setRecMov] = useState();
-  // current relative area of circle
-  const [rectArea, setRectArea] = useState();
   // whether circle is selected
   const [showRect, setShowRect] = useState(false);
 
@@ -96,11 +91,9 @@ const Canvas = () => {
   const clearEverything = () => {
     setShowCirc(false);
     setCircLocation();
-    setCircArea();
     setCircMov();
     setShowRect(false);
     setRectLocation();
-    setRectArea();
     setRecMov();
     clearCanvas();
     //clearing local storage
@@ -201,35 +194,11 @@ const Canvas = () => {
     storeCanvas();
   };
 
-  //finding current relative position of shapes
-  const findAreas = () => {
-    let areaR;
-    let areaC;
-    if (rectLocation) {
-      areaR = findRectArea(
-        rectLocation,
-        canvasRef.current.offsetLeft,
-        canvasRef.current.offsetTop
-      );
-      setRectArea(areaR);
-    }
-
-    if (circLocation) {
-      areaC = findCircArea(
-        circLocation,
-        canvasRef.current.offsetLeft,
-        canvasRef.current.offsetTop
-      );
-      setCircArea(areaC);
-    }
-    return { areaR, areaC };
-  };
 
   // delete rectangle component
   const deleteRect = () => {
     setShowRect(false);
     setRectLocation();
-    setRectArea();
     setRecMov();
     clearCanvas();
     localStorage.removeItem("rectangle");
@@ -243,7 +212,6 @@ const Canvas = () => {
   const deleteCirc = () => {
     setShowCirc(false);
     setCircLocation();
-    setCircArea();
     setCircMov();
     clearCanvas();
     localStorage.removeItem("circle");
@@ -255,10 +223,8 @@ const Canvas = () => {
 
   // check location against rectangle location
   const checkMouseRect = (location) => {
-    const a = findAreas();
-    const { areaR } = a;
-    const { x, y } = areaR;
-    if (rectLocation && checkArea(location, x, y)) {
+    const {x, y} = location;
+    if (rectLocation && isInRectangle(rectLocation, x, y)) {
       if (!showRect) {
         setShowRect(true);
         // saving the starting position
@@ -273,10 +239,8 @@ const Canvas = () => {
 
   // check location against circle location
   const checkMouseCirc = (location) => {
-    const a = findAreas();
-    const { areaC } = a;
-    const { x, y } = areaC;
-    if (circLocation && checkArea(location, x, y)) {
+    const {x, y} = location;
+    if (circLocation && isInCircle(circLocation, x, y)) {
       if (!showCirc) {
         setShowCirc(true);
         // saving the starting position
@@ -290,7 +254,7 @@ const Canvas = () => {
   };
 
   const handleMouseDown = (e) => {
-    const click = { x: e.clientX, y: e.clientY, shift: e.shiftKey };
+    const click = { x: e.clientX - canvasRef.current.offsetLeft, y: e.clientY - canvasRef.current.offsetTop, shift: e.shiftKey };
     if (rectLocation) {
       checkMouseRect(click);
     }
@@ -314,19 +278,18 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (e) => {
-    const location = { x: e.clientX, y: e.clientY };
+    const x = e.clientX;
+    const y = e.clientY;
     // checking for hover
     if (!isDragging && location) {
-      const a = findAreas();
-      const { areaR, areaC } = a;
       clearCanvas();
       resetCanvas();
-      if (rectLocation && checkArea(location, areaR.x, areaR.y)) {
+      if (rectLocation && isInRectangle(rectLocation, x, y)) {
         drawRectangle({...rectLocation, hv: true});
       } else if (rectLocation) {
         drawRectangle({...rectLocation, ...RESET});
       }
-      if (circLocation && checkArea(location, areaC.x, areaC.y)) {
+      if (circLocation && isInCircle(circLocation, x, y)) {
         drawCircle({...circLocation, hv: true});
       } else if (circLocation) {
         drawCircle({...circLocation, ...RESET});
@@ -390,7 +353,6 @@ const Canvas = () => {
 
   return (
     <div>
-      {isDragging.toString()}
       <Styled.Title>shape toy prompt | kate christian</Styled.Title>
       <Styled.ButtonPane>
         <Styled.ControlButtons
