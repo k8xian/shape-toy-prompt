@@ -1,8 +1,9 @@
 # Shape Toy Prompt 
 Kate Christian
 
-`yarn install`
+`yarn install`  
 `yarn start`
+[deployment link](https://shape-toy-prompt.vercel.app/)
 
 ## Structure
 The project was initialized with [Create React App](https://create-react-app.dev/) and uses [Emotion](https://emotion.sh/docs/styled) for styled components and some inline styling. It uses [React Hooks](https://reactjs.org/docs/hooks-intro.html) to manage the states of the circle and rectangle components. The controls are handled by using [Mouse Events](https://developer.mozilla.org/en-US/docs/Web/API/Element#mouse_events) within the Canvas node, and the changes are stored in the respective states. The shapes can be manipulated via thsoe mouse events and range and control [inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input). This project also uses [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to preserve the most recent state of the canvas, and converts the canvas ref to .jpg via [.toDataURL](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL) for saving.
