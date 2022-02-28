@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { css } from "@emotion/css";
 
-// HELPERS
-import { COLORS, OFFSET, VALUES, DRAW } from "../../Helpers/Constants";
+// UTILS
+import { COLORS, OFFSET, VALUES, DRAW } from "../../utils/Constants";
+import { findRectArea, findCircArea, checkArea } from "../../utils/Helpers";
 
 // COMPONENTS
 import ShapeControl from "./ShapeControl";
@@ -17,25 +18,35 @@ const canvasStyle = css`
 const Canvas = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // current location of circle
   const [circLocation, setCircLocation] = useState(() => {
     const savedCirc = localStorage.getItem("circle");
     const storedValue = JSON.parse(savedCirc);
     return storedValue || "";
   });
+  // location of circle when it beings moving
   const [circMov, setCircMov] = useState();
+  // current relative area of circle
   const [circArea, setCircArea] = useState();
+  // whether circle is selected
   const [showCirc, setShowCirc] = useState(false);
 
+  // current location of rectangle
   const [rectLocation, setRectLocation] = useState(() => {
     const savedRect = localStorage.getItem("rectangle");
     const storedValue = JSON.parse(savedRect);
     return storedValue || "";
   });
+  // location of circle when it beings moving
   const [recMov, setRecMov] = useState();
+  // current relative area of circle
   const [rectArea, setRectArea] = useState();
+  // whether circle is selected
   const [showRect, setShowRect] = useState(false);
 
+  // mouse location when dragging begins
   const [dragInit, setDragInit] = useState();
+  //when dragging is actively happening
   const [isDragging, setisDragging] = useState(false);
 
   const canvasRef = useRef(null);
@@ -64,6 +75,7 @@ const Canvas = () => {
     storeCanvas();
   };
 
+  //resetting the canvas according to current state
   const resetCanvas = () => {
     clearCanvas();
     if (showRect && rectLocation) {
@@ -80,7 +92,7 @@ const Canvas = () => {
     storeCanvas();
   };
 
-  // separate function to reset states
+  // separate function to reset states too
   const clearEverything = () => {
     setShowCirc(false);
     setCircLocation();
@@ -96,7 +108,7 @@ const Canvas = () => {
     localStorage.removeItem("circle");
   };
 
-  // restoring local storage
+  // restoring local storage on load
   useEffect(() => {
     if (!isInitialized && canvasRef) {
       resetCanvas();
@@ -104,6 +116,7 @@ const Canvas = () => {
     }
   }, [isInitialized]);
 
+  // drawing rectangle and hover/select
   const drawRectangle = (param, select) => {
     const { x, y, w, h, c } = param;
 
@@ -133,6 +146,7 @@ const Canvas = () => {
     storeCanvas();
   };
 
+  // drawing circle and hover/select
   const drawCircle = (param, select) => {
     const { x, y, r, c } = param;
 
@@ -167,6 +181,30 @@ const Canvas = () => {
     storeCanvas();
   };
 
+  //finding current relative position of shapes
+  const findAreas = () => {
+    let areaR;
+    let areaC;
+    if (rectLocation) {
+      areaR = findRectArea(
+        rectLocation,
+        canvasRef.current.offsetLeft,
+        canvasRef.current.offsetTop
+      );
+      setRectArea(areaR);
+    }
+
+    if (circLocation) {
+      areaC = findCircArea(
+        circLocation,
+        canvasRef.current.offsetLeft,
+        canvasRef.current.offsetTop
+      );
+      setCircArea(areaC);
+    }
+    return { areaR, areaC };
+  };
+
   // delete rectangle component
   const deleteRect = () => {
     setShowRect(false);
@@ -174,6 +212,7 @@ const Canvas = () => {
     setRectArea();
     setRecMov();
     clearCanvas();
+    localStorage.removeItem("rectangle");
     // restore circle
     if (circLocation) {
       drawCircle(circLocation);
@@ -187,52 +226,20 @@ const Canvas = () => {
     setCircArea();
     setCircMov();
     clearCanvas();
+    localStorage.removeItem("circle");
     // restore rectangle
     if (rectLocation) {
       drawRectangle(rectLocation);
     }
   };
 
-  const getRectArea = () => {
-    if (rectLocation && canvasRef) {
-      const tempObj = { x: { min: "", max: "" }, y: { min: "", max: "" } };
-      tempObj.x.min = canvasRef.current.offsetLeft + rectLocation.x;
-      tempObj.x.max = tempObj.x.min + rectLocation.w;
-      tempObj.y.min = canvasRef.current.offsetTop + rectLocation.y;
-      tempObj.y.max = tempObj.y.min + rectLocation.h;
-      setRectArea(tempObj);
-      // explicit return in case state change subject to rerender
-      return tempObj;
-    }
-  };
-
-  const getCircArea = () => {
-    if (circLocation && canvasRef) {
-      const tempObj = { x: { min: "", max: "" }, y: { min: "", max: "" } };
-      tempObj.x.min =
-        canvasRef.current.offsetLeft + circLocation.x - circLocation.r;
-      tempObj.x.max = tempObj.x.min + circLocation.r * 2;
-      tempObj.y.min =
-        canvasRef.current.offsetTop + circLocation.y - circLocation.r;
-      tempObj.y.max = tempObj.y.min + circLocation.r * 2;
-      setCircArea(tempObj);
-      // explicit return in case state change subject to rerender
-      return tempObj;
-    }
-  };
-
   // check location against rectangle location
   const checkMouseRect = (location) => {
-    getRectArea();
-    if (
-      rectLocation &&
-      location.x > rectArea.x.min &&
-      location.x < rectArea.x.max &&
-      location.y > rectArea.y.min &&
-      location.y < rectArea.y.max
-    ) {
+    const a = findAreas();
+    const { areaR } = a;
+    const { x, y } = areaR;
+    if (rectLocation && checkArea(location, x, y)) {
       setShowRect(true);
-
       // saving the starting position
       setRecMov(rectLocation);
       // rerender with highlight
@@ -246,14 +253,10 @@ const Canvas = () => {
 
   // check location against circle location
   const checkMouseCirc = (location) => {
-    getCircArea();
-    if (
-      circLocation &&
-      location.x > circArea.x.min &&
-      location.x < circArea.x.max &&
-      location.y > circArea.y.min &&
-      location.y < circArea.y.max
-    ) {
+    const a = findAreas();
+    const { areaC } = a;
+    const { x, y } = areaC;
+    if (circLocation && checkArea(location, x, y)) {
       setShowCirc(true);
       // saving the starting position
       setCircMov(circLocation);
@@ -268,8 +271,12 @@ const Canvas = () => {
 
   const handleMouseDown = (e) => {
     const click = { x: e.clientX, y: e.clientY, shift: e.shiftKey };
-    checkMouseRect(click);
-    checkMouseCirc(click);
+    if (rectLocation) {
+      checkMouseRect(click);
+    }
+    if (circLocation) {
+      checkMouseCirc(click);
+    }
     setisDragging(true);
     setDragInit({ x: click.x, y: click.y });
   };
@@ -286,34 +293,22 @@ const Canvas = () => {
     handleMouseUp(e);
   };
 
+
   const handleMouseMove = (e) => {
     const location = { x: e.clientX, y: e.clientY };
+    console.log("location", location);
     // checking for hover
     if (!isDragging && location) {
-      getRectArea();
-      getCircArea();
+      const a = findAreas();
+      console.log("areas", a);
+      const { areaR, areaC } = a;
       clearCanvas();
-      if (
-        rectLocation &&
-        rectArea &&
-        location.x > rectArea.x.min &&
-        location.x < rectArea.x.max &&
-        location.y > rectArea.y.min &&
-        location.y < rectArea.y.max
-      ) {
+      if (rectLocation && checkArea(location, areaR.x, areaR.y)) {
         drawRectangle(rectLocation, 2);
       } else if (rectLocation) {
         drawRectangle(rectLocation, false);
       }
-
-      if (
-        circLocation &&
-        circArea &&
-        location.x > circArea.x.min &&
-        location.x < circArea.x.max &&
-        location.y > circArea.y.min &&
-        location.y < circArea.y.max
-      ) {
+      if (circLocation && checkArea(location, areaC.x, areaC.y)) {
         drawCircle(circLocation, 2);
       } else if (circLocation) {
         drawCircle(circLocation, false);
@@ -429,11 +424,7 @@ const Canvas = () => {
           onMouseOut={handleMouseOut}
           onMouseMove={handleMouseMove}
         />
-
       </div>
-      {circArea && JSON.stringify(circArea)}
-      <br />
-      {rectArea && JSON.stringify(rectArea)}
       <div
         data-testid="control-pane"
         className={css`
