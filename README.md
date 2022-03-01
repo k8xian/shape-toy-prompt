@@ -1,5 +1,4 @@
 # Shape Toy Prompt 
-Kate Christian
 
 `yarn install`  
 `yarn start`  

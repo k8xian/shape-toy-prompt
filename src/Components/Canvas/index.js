@@ -390,7 +390,7 @@ const Canvas = () => {
 
   return (
     <div>
-      <Styled.Title>shape toy prompt | kate christian</Styled.Title>
+      <Styled.Title>shape toy prompt</Styled.Title>
       <Styled.ButtonPane>
         <Styled.ControlButtons
           data-testid="draw-rectangle-button"
